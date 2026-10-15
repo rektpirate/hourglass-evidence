@@ -6,7 +6,7 @@ Documents and scripts rescued from the consensorAI design-systems project on 16 
 
 | Path | What it is | Named author or session | Date |
 |---|---|---|---|
-| `TODO-16Oct26.md` | One TODO list built from every handoff and half-finished job below | | 16 Oct 2026 |
+| `TODO-16Oct26.html` | The TODO list from every handoff: your calls, what agents can do now, waiting on outside people, releases, parked. Open it in a browser; ticks are saved per browser | | 16 Oct 2026 |
 | `handoffs/HANDOFF-CASELOCK-SHELL.md` | CaseLock v2 shell, local preview, locked decisions | | 15 Oct 2026, 22:47 |
 | `handoffs/HANDOFF-16Oct26-shell-library-csk.md` | Application shell, author-note sweep, documents library, library.consensor.io, Consensorship Kit, pull-down board | session f975a626 | 16 Oct 2026, 02:40 |
 | `handoffs/HANDOFF-release-check-16Oct26.md` | The release check in `live-log.py` | claude·955e | 16 Oct 2026 |

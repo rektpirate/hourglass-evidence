@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>To-do — 16 Oct 2026</title>
+<style>
+:root{
+  --ground:#e7e7e7; --card:#ffffff; --ink:#1d1d1f; --soft:#6e6e73; --faint:#a1a1a6;
+  --line:#dcdcdf; --chip:#f2f2f4; --pill:#111; --pill-ink:#fff;
+  --done:#1f8a4c; --you:#0a66d8; --agent:#1f8a4c; --out:#8a5a00; --rel:#b4261a; --park:#6e6e73;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{--ground:#161617;--card:#232325;--ink:#f5f5f7;--soft:#a1a1a6;--faint:#6e6e73;--line:#3a3a3c;--chip:#2c2c2e;--pill:#f5f5f7;--pill-ink:#111;
+    --you:#4c9bff;--agent:#3fbf73;--out:#d9a441;--rel:#ff6b5e;--done:#3fbf73}
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--ground);color:var(--ink);font:15px/1.45 var(--font);-webkit-font-smoothing:antialiased;padding:28px 16px 64px}
+.wrap{max-width:780px;margin:0 auto}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 4px 18px}
+h1{font-size:22px;letter-spacing:-.01em;margin:0}
+.count{color:var(--soft);font-size:13px}
+.count b{color:var(--ink);font-weight:600}
+nav{position:sticky;top:10px;z-index:5;display:flex;justify-content:center;margin:0 0 22px}
+.seg{display:flex;gap:2px;background:var(--pill);border-radius:999px;padding:4px;overflow-x:auto;max-width:100%;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{all:unset;cursor:pointer;white-space:nowrap;color:var(--pill-ink);opacity:.62;font-size:13px;padding:7px 13px;border-radius:999px}
+.seg button[aria-pressed="true"]{opacity:1;background:rgba(127,127,127,.28)}
+.seg button:focus-visible{outline:2px solid var(--you);outline-offset:1px}
+section{margin:0 0 26px}
+section[hidden]{display:none}
+h2{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);margin:0 6px 10px}
+h2 i{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:8px;vertical-align:1px}
+h2 small{font-weight:500;text-transform:none;letter-spacing:0;color:var(--faint);margin-left:6px;font-size:11.5px}
+.card{background:var(--card);border-radius:16px;overflow:hidden}
+.item{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:13px 16px;border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.tick{all:unset;cursor:pointer;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--faint);margin-top:1px;display:grid;place-items:center}
+.tick:focus-visible{outline:2px solid var(--you);outline-offset:2px}
+.tick svg{width:12px;height:12px;opacity:0}
+.item.done .tick{background:var(--done);border-color:var(--done)}
+.item.done .tick svg{opacity:1}
+.t{font-weight:600}
+.item.done .t{text-decoration:line-through;color:var(--soft);font-weight:500}
+.d{color:var(--soft);font-size:13.5px;margin-top:3px}
+.item.done .d{color:var(--faint)}
+.d ul{margin:5px 0 0;padding-left:18px}
+.d li{margin:1px 0}
+.meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.src{font:11px/1 var(--mono);background:var(--chip);color:var(--soft);padding:4px 7px;border-radius:6px}
+.tag{font-size:11px;line-height:1;padding:4px 7px;border-radius:6px;border:1px solid var(--line);color:var(--soft)}
+.rules{font-size:13px;color:var(--soft);padding:14px 18px}
+.rules ul{margin:0;padding-left:18px}
+.rules li{margin:3px 0}
+footer{display:flex;justify-content:flex-end;margin:4px 4px 0}
+footer button{all:unset;cursor:pointer;font-size:12px;color:var(--faint)}
+footer button:hover{color:var(--soft)}
+@media (max-width:520px){body{padding:18px 12px 48px}.item{padding:12px 13px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>To-do</h1>
+    <div class="count" id="count"></div>
+  </header>
+  <nav><div class="seg" id="seg" role="toolbar" aria-label="Show"></div></nav>
+  <main id="list"></main>
+  <section data-group="rules">
+    <h2>House rules</h2>
+    <div class="card rules"><ul>
+      <li>giving goes live only through <code>release-blue.command</code>. Never deploy directly.</li>
+      <li>No remote database commands on <code>consensor-giving</code>. Never edit <code>group/green-site</code>.</li>
+      <li>The microphone is locked: voiceLive, voiceText, the speech language and the AI binding in <code>laps.js</code> stay as they are.</li>
+      <li>Each agent marks only its own work ready. No placement in <code>wrangler.jsonc</code>.</li>
+      <li>Offline first. Nothing goes live without your word.</li>
+    </ul></div>
+  </section>
+  <footer><button id="reset" type="button">Clear my ticks</button></footer>
+</div>
+<script>
+/* One list. Each group, then its items. id must stay the same when an item is reworded, so ticks survive. */
+const GROUPS = [
+  {key:"done", name:"Fixed tonight", color:"var(--done)"},
+  {key:"you", name:"Your calls", color:"var(--you)", note:"in the order that frees up the most work"},
+  {key:"agent", name:"Agents can do now", color:"var(--agent)", note:"no decision needed"},
+  {key:"out", name:"Waiting on outside people", color:"var(--out)"},
+  {key:"rel", name:"Releases", color:"var(--rel)", note:"only on your word"},
+  {key:"park", name:"Parked", color:"var(--park)", note:"not until you ask"}
+];
+const ITEMS = [
+  // Fixed tonight
+  {id:"hook-back", g:"done", done:true, t:"Hook script back in group/live",
+   d:"live-log.py had moved to group/work/theus. Claude Code's and Cursor's hooks call it in group/live, so every edit and command was blocked. Moved back. Self-test 44 of 44.",
+   src:["group/live/live-log.py"]},
+  {id:"tests-back", g:"done", done:true, t:"test-local.sh back in group/live",
+   d:"release-blue.command runs it from there. Without it every release stopped at \"Tests failed\".",
+   src:["release-blue.command"]},
+  {id:"offline-handoff", g:"done", done:true, t:"giving-offline handoff saved",
+   d:"The hook had blocked it. Now at giving-offline/HANDOFF-16Oct26.md.",
+   src:["giving-offline/HANDOFF-16Oct26.md"]},
+
+  // Your calls
+  {id:"pilot-d12", g:"you", t:"Team-chat pilot: decisions D12 to D19",
+   d:"The walkthrough stopped after D11. Each has a recommendation written.<ul><li>D12 who holds the list (not in the chat, not the admin)</li><li>D13 oversight: a co-signer and an outside privacy reviewer</li><li>D14 crisis path: help always visible in the chat</li><li>D15 labels on the campaign page</li><li>D16 police wording: lawful process only</li><li>D17 voice kept out</li><li>D18 no text in chat ledger events</li><li>D19 register CP-3</li></ul>",
+   src:["ENCODING-SEQUENCE.md Part C"], tags:["blocks the pilot build"]},
+  {id:"kyc-10", g:"you", t:"KYC and age policy: 10 questions",
+   d:"The first three matter most.<ul><li>Apple: launch with Google only? Which age-check company, and what budget?</li><li>The board: keep it free of likes, view counts, endless scroll, vanishing posts and picked-for-you posts? Since 26 Mar 2026 any of these may bring giving under the under-16 law.</li><li>The ledger: age checks as salted fingerprints, with the result in a store that can be wiped? The same for an under-age account's post records? Keep the one-word check method?</li><li>Then: the 18+ list (especially money), 16–17 year olds publishing, appeal times and the second reviewer, how support checks a parent, signing everyone out on launch day, consensor.io's own minimum age, selfie margins.</li></ul>",
+   src:["KYC-AGE-POLICY.md §10","HANDOFF-CP2-16Oct26.md"], tags:["blocks Google approval (2–6 weeks)"]},
+  {id:"cp1", g:"you", t:"Disputes (CP-1): set the rules",
+   d:"Who may raise one, what they are shown, response times, how long records are kept, and the hand-off to crisis help.",
+   src:["GIVING-POLICY.md §3","PATHWAYS.md"]},
+  {id:"ledger-rules", g:"you", t:"Ledger: confirm two proposed rules",
+   d:"Never in the ledger: passwords, sign-in tokens, the microphone's sound or words. Actions in a personal space are logged without the words until published (your \"yep\" was read as this).",
+   src:["GIVING-POLICY.md §4"]},
+  {id:"release-harmless", g:"you", t:"Release check: should build.py and test-local.sh stop counting as changes?",
+   d:"Both only rebuild public/ and run tests. 19 of Cursor's lines are held up by this.",
+   src:["HANDOFF.md (release check)"]},
+  {id:"ready-per-session", g:"you", t:"Start per-session ready marks for Claude seats?",
+   d:"Today one Claude session's \"ready claude\" clears every Claude session's edits, and a Claude release skips all Claude edits. The same accident that happened with Cursor on 15 Oct, Claude to Claude.",
+   src:["HANDOFF.md","HANDOFF-16Oct26 copy.md"]},
+  {id:"fit", g:"you", t:"Fit to view: fit everything, or stop at reading size?",
+   d:"Now it fits everything, about 24% in CaseLock. The alternative stops at reading size and you pan.",
+   src:["TOOLKIT.md","HANDOFF-16Oct26.md §1"]},
+  {id:"fn-look", g:"you", t:"Approve the light Functions column, or not",
+   d:"The light version with the Working / Building / Paused dropdown and the ⋮ menu replaced the dark one. It isn't approved yet.",
+   src:["HANDOFF-CASELOCK-SHELL.md"]},
+  {id:"notes-match", g:"you", t:"Sign off the Notes cover as a match",
+   d:"The open difference is the icons (the PNGs cut from the reference).",
+   src:["HANDOFF-CASELOCK-SHELL.md"]},
+  {id:"signoff", g:"you", t:"Give the sign-off wording for documents",
+   d:"No sign-off goes on any document until you give the words.",
+   src:["HANDOFF-16Oct26.md"]},
+  {id:"doclib-calls", g:"you", t:"Documents library: three small calls",
+   d:"Darken the bar's placeholder (it fails contrast)? Show wide tables as records? Dock the menu from 960px?",
+   src:["HANDOFF-16Oct26.md §3"]},
+  {id:"board-where", g:"you", t:"Pull-down board: where does it go first?",
+   d:"The documents library canvas, or giving's Laps page. Plan written 15 Oct, not started.",
+   src:["PLAN-pull-down-board.md","HANDOFF-16Oct26.md §5b"]},
+  {id:"bf", g:"you", t:"Language atlas: the entry for the esoteric language \"BF\"",
+   d:"Keep it or change it, under the no-swearing site rule.",
+   src:["HANDOFF-16Oct26.md §2"]},
+  {id:"lab", g:"you", t:"Research lab and the LAPS × BlueLabs map",
+   d:"<ul><li>Go on the integration room</li><li>Names of the six pillars (not in the notes)</li><li>A name for the idea-web prototype</li><li>Go to swap its sample data for real papers</li><li>Go to check LAPS's Instagram, Facebook and LinkedIn for 2024–26</li></ul>",
+   src:["handoff-012fZhS2iJf7mBXzHdwB8m7v.md §6"]},
+  {id:"tree", g:"you", t:"Old first map in giving-offline/tree: keep or delete",
+   d:"Superseded by the giving canonical map.",
+   src:["giving-offline/HANDOFF-16Oct26.md"]},
+
+  // Agents can do now
+  {id:"toolkit-check", g:"agent", t:"Toolkit: look at it in the browser at 1440, 1000 and 390",
+   d:"Bar centred on the nav pill, never over the phone or the Functions column, the row scrolls. Checked tonight: appshell.js passes node --check and public/ matches static/. The handoff says the fix pass was cut off at 02:36; TOOLKIT.md has measurements written after it.",
+   src:["static/appshell.js","TOOLKIT.md"]},
+  {id:"sweep", g:"agent", t:"Finish the author-note sweep",
+   d:"Re-run strip-author-notes-wf_26619e0a-f05.js. It finishes the register (4 files and DL-0008), rebuilds library-data.js and prints the grep proof. Then republish the App Document Register from the cleaned HTML.",
+   src:["HANDOFF-16Oct26.md §2"]},
+  {id:"css-comment", g:"agent", t:"Remove the owner comment in appshell.css",
+   d:"Line 59, top of the Stage section: \"owner's reference, 14 Oct 2026\". Still there tonight.",
+   src:["static/appshell.css:59"]},
+  {id:"doclib-rebuild", g:"agent", t:"Rebuild the documents library around the App Document Register",
+   d:"Sections A–P as the menu. Each item (e.g. DOC-B04) its own read-only page, with its sources as citations. Each app gets writable copies with a status (needed, conditional, not applicable, done), CaseLock first.",
+   src:["HANDOFF-16Oct26.md §3"]},
+  {id:"csk", g:"agent", t:"Consensorship Kit: re-run the research",
+   d:"Only the scope file exists (checked tonight). Re-run csk-research-wf_b4a0b2be-d2c.js; it writes csk/research/*.md and CSK-SPEC.md. Show you the plan before building anything.",
+   src:["csk/research/00-scope-app-library-and-csk.md"]},
+  {id:"lawyer-pack", g:"agent", t:"Write the lawyer brief for L1–L6",
+   d:"From KYC policy §1.3. L1 first: is giving an \"age-restricted social media platform\"?",
+   src:["KYC-AGE-POLICY.md §1.3"]},
+  {id:"bug-scrub", g:"agent", t:"Bug: the publish scrub took a 13-digit number in a title for a phone number",
+   d:"Offline copy.", src:["giving-offline"]},
+  {id:"bug-500", g:"agent", t:"Bug: a ledger error during Publish returns an HTML 500, not JSON",
+   d:"Offline src/index.js, around lines 1609–1614.", src:["giving-offline/giving/src/index.js"]},
+  {id:"pathways-stale", g:"agent", t:"PATHWAYS.md: the CP-3 row is out of date",
+   d:"It says D2–D19 are waiting. D1–D11 are decided.", src:["PATHWAYS.md:12"]},
+  {id:"elkann", g:"agent", t:"ENCODING-SEQUENCE.md D6: Lapo's surname is spelled \"Elkin\"",
+   d:"Should be Elkann.", src:["ENCODING-SEQUENCE.md:669"]},
+  {id:"claim", g:"agent", t:"CLAIM.md still names claude·f975 as holding the app shell",
+   d:"That session ended (context full). Whoever takes the shell next updates it.", src:["group/work/theus/CLAIM.md"]},
+  {id:"links", g:"agent", t:"Fix links to the policy files",
+   d:"GIVING-POLICY.md, KYC-AGE-POLICY.md and HANDOFF-CP2 are now in group/work/theus. PATHWAYS.md and the handoffs still point to group/work/policy.",
+   src:["group/work/theus"]},
+  {id:"speed-handoff", g:"agent", t:"speed/HANDOFF.md step 3 still describes the \"known false alarm\"",
+   d:"Fixed on 15 Oct. That section is claude·f217's.", src:["group/work/speed/HANDOFF.md"]},
+  {id:"receipts", g:"agent", t:"Write the missing run receipts",
+   d:"record_run.py, from a shell outside the sandbox: the apps site, releases, register, code view, toolkit, library and library site work; the CP-2 run of 15 Oct; claude·f217's session.",
+   src:["scripts/record_run.py"]},
+  {id:"notion", g:"agent", t:"Mirror the runs to Notion",
+   d:"Outstanding for the app shell and library work, and for the live-log run.", src:["HANDOFF-16Oct26.md §7"]},
+  {id:"m5", g:"agent", t:"M5 memory health is falling",
+   d:"Computer History capture stopped, binding refused, runs not mirrored.", src:["HANDOFF-16Oct26.md §7"]},
+  {id:"cursor-fixes", g:"agent", t:"Cursor: the new site rule list",
+   d:"The Mapping transcript pages, and the Research comments and files.", src:["FIXES-FOR-CURSOR.md"], tags:["Cursor"]},
+  {id:"log-gaps", g:"agent", t:"Low: gaps in the live log",
+   d:"Failed commands and a bare ./release-blue.command never reach LIVE.md. A copy out of giving still counts as a change. Costs the trail, never blocks.",
+   src:["HANDOFF.md"]},
+
+  // Waiting on outside people
+  {id:"lawyer", g:"out", t:"Lawyer: L1–L6 (KYC) and L7–L13 (pilot)",
+   d:"L1 is the big one.", src:["KYC-AGE-POLICY.md §1.3","ENCODING-SEQUENCE.md"]},
+  {id:"crypto", g:"out", t:"Cryptographer for the pilot",
+   d:"Including the fake matches that hide a count below 3 (D7).", src:["ENCODING-SEQUENCE.md B.3"]},
+  {id:"pia", g:"out", t:"Outside privacy reviewer and a privacy impact assessment",
+   d:"Both before any pilot code.", src:["ENCODING-SEQUENCE.md"]},
+  {id:"agecheck", g:"out", t:"Age-check company",
+   d:"After the Apple decision.", src:["KYC-AGE-POLICY.md §3.3"]},
+  {id:"google", g:"out", t:"Google's approval of the birthday permission",
+   d:"2 to 6 weeks, the longest wait. Starts after the KYC answers. Before submitting: check on consensor.io's Google Cloud Data Access page whether user.birthday.read counts as sensitive, and test which birthday the People API returns.",
+   src:["KYC-AGE-POLICY.md §3.2, §9"]},
+
+  // Releases
+  {id:"rel-shell", g:"rel", done:true, t:"CaseLock shell, live code and toolkit: released 16 Oct",
+   d:"release-apps.command shipped the phone app (index.html, shell.js, app.js). Then release-blue.command okina shipped the shell, with Cursor's Research edits included: e2e 110 of 110, crawl 830 of 830. Rollback point c4077d1e-4346-4ddd-9eb5-f8088746a32b (group/stages/blue-20261015T175922Z.txt). Still to look at: the toolkit at 1000 and 390 wide, and /r/research.",
+   src:["HANDOFF-16Oct26.md §1"]},
+  {id:"rel-library", g:"rel", t:"library.consensor.io: hold",
+   d:"Until the library holds the right content. Local checks 53 of 53.", src:["publish/library"]},
+  {id:"rel-offline", g:"rel", t:"giving offline work to live",
+   d:"Copy into publish/giving, build.py runs the map snapshot, the privacy page says what's kept on the server and in the ledger, then release-blue.command claude. Offline tests 138 of 138.",
+   src:["giving-offline/HANDOFF-16Oct26.md §5"]},
+
+  // Parked
+  {id:"p-algo", g:"park", t:"A function algorithm that measures what's happening, tied to research papers", d:"", src:["HANDOFF-CASELOCK-SHELL.md"]},
+  {id:"p-canvas", g:"park", t:"React Flow or Rete.js for the stage canvas", d:"Not installed, not started.", src:["HANDOFF-CASELOCK-SHELL.md"]},
+  {id:"p-ledger", g:"park", t:"The full ledger and its anchoring",
+   d:"Every action in the portal, anchored to OpenTimestamps and Rekor. Decided, then stopped. Until it's anchored, anyone with write access to the database could rebuild the chain.",
+   src:["GIVING-POLICY.md §4"]},
+  {id:"p-labs", g:"park", t:"Labs installer, Research Lab cabinet, the little city in 3D orbit",
+   d:"Talked through, not built.", src:["GIVING-POLICY.md §6"]},
+  {id:"p-pilot", g:"park", t:"Building the team-chat pilot",
+   d:"Not before D12–D19, the lawyer's answers and the privacy impact assessment.", src:["ENCODING-SEQUENCE.md"]},
+  {id:"p-kyc", g:"park", t:"Building the age checks on consensor.io",
+   d:"Not before the §10 answers.", src:["KYC-AGE-POLICY.md §9"]}
+];
+
+const KEY = "todo-16oct26";
+let ticks = {};
+try { ticks = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { ticks = {}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(ticks)); } catch (e) {} };
+const isDone = it => (it.id in ticks) ? ticks[it.id] : !!it.done;
+
+const CHECK = '<svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.3l2.3 2.2 4.7-5"/></svg>';
+const list = document.getElementById("list");
+let view = "all";
+
+function el(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+
+function render() {
+  list.textContent = "";
+  for (const g of GROUPS) {
+    const items = ITEMS.filter(i => i.g === g.key);
+    const sec = el("section"); sec.dataset.group = g.key;
+    sec.hidden = !(view === "all" || view === g.key);
+    const open = items.filter(i => !isDone(i)).length;
+    const h = el("h2", null, `<i style="background:${g.color}"></i>${g.name} <small>${g.key === "done" ? items.length : open + " open"}${g.note ? " · " + g.note : ""}</small>`);
+    sec.appendChild(h);
+    const card = el("div", "card");
+    for (const it of items) {
+      const row = el("div", "item" + (isDone(it) ? " done" : ""));
+      const b = el("button", "tick", CHECK); b.type = "button";
+      b.setAttribute("aria-label", (isDone(it) ? "Mark open: " : "Mark done: ") + it.t);
+      b.setAttribute("aria-pressed", String(isDone(it)));
+      b.addEventListener("click", () => { ticks[it.id] = !isDone(it); save(); render(); });
+      const body = el("div");
+      body.appendChild(el("div", "t")).textContent = it.t;
+      if (it.d) body.appendChild(el("div", "d", it.d));
+      const meta = el("div", "meta");
+      (it.tags || []).forEach(t => meta.appendChild(el("span", "tag")).textContent = t);
+      (it.src || []).forEach(s => meta.appendChild(el("span", "src")).textContent = s);
+      if (meta.childNodes.length) body.appendChild(meta);
+      row.append(b, body); card.appendChild(row);
+    }
+    sec.appendChild(card); list.appendChild(sec);
+  }
+  document.querySelector('section[data-group="rules"]').hidden = view !== "all";
+  const open = ITEMS.filter(i => !isDone(i)).length;
+  const you = ITEMS.filter(i => i.g === "you" && !isDone(i)).length;
+  document.getElementById("count").innerHTML = `<b>${open}</b> open · <b>${you}</b> need you · 16 Oct 2026`;
+}
+
+const seg = document.getElementById("seg");
+[{key:"all", name:"All"}, ...GROUPS.filter(g => g.key !== "done")].forEach(g => {
+  const b = el("button"); b.type = "button"; b.textContent = g.name; b.dataset.key = g.key;
+  b.setAttribute("aria-pressed", String(g.key === view));
+  b.addEventListener("click", () => { view = g.key; seg.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.key === view))); render(); });
+  seg.appendChild(b);
+});
+document.getElementById("reset").addEventListener("click", () => { ticks = {}; save(); render(); });
+render();
+</script>
+</body>
+</html>
