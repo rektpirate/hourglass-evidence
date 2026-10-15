@@ -6,6 +6,7 @@ Documents and scripts rescued from the consensorAI design-systems project on 16 
 
 | Path | What it is | Named author or session | Date |
 |---|---|---|---|
+| `RUNBOOK-go-live.md` | The go-live runbook: paste into a Claude Code session on the Mac and it does every remaining release and fix, asking only at five stop points | | 16 Oct 2026 |
 | `TODO-16Oct26.html` | The TODO list from every handoff: your calls, what agents can do now, waiting on outside people, releases, parked. Open it in a browser; ticks are saved per browser | | 16 Oct 2026 |
 | `handoffs/HANDOFF-CASELOCK-SHELL.md` | CaseLock v2 shell, local preview, locked decisions | | 15 Oct 2026, 22:47 |
 | `handoffs/HANDOFF-16Oct26-shell-library-csk.md` | Application shell, author-note sweep, documents library, library.consensor.io, Consensorship Kit, pull-down board | session f975a626 | 16 Oct 2026, 02:40 |
