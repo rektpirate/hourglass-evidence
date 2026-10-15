@@ -30,6 +30,10 @@ Sources: `giving-offline/HANDOFF-16Oct26.md`, `giving-offline/FROZEN.md` (every 
 8. Tests: port the offline `dev/e2e.py` cases (138 passed offline) into the live `dev/e2e.py` without dropping any live case. Then `node --check publish/giving/src/index.js`, `python3 -I publish/giving/build.py`, and the full local run (`test-local.sh`, wherever it now lives: `group/live/` or `publish/giving/`). Everything must pass. A failure that survives two fix attempts is stop point B.
 9. Release: `python3 -I group/live/live-log.py ready claude "giving offline work: your space, publish, ledger blocks, canonical map, privacy page"` then `./release-blue.command claude`. If it stops on another agent's unfinished work, that is stop point C. After it says released: confirm `/r/mapping` serves the map snapshot, `/privacy` has the new text, and a signed-in Laps save lands in Your space on the live site.
 
+## 2b. LAPS Foundation room (the owner's go, 16 Oct 2026)
+
+Spec and first content: `LAPS-FOUNDATION-ROOM.md` in this repo (fetch it beside this runbook). Build it as a giving room at `/r/laps`, signed-in only, with the map from `~/Desktop/16Oct26-the-day-in-full/laps-bluelabs-map.html` as the canvas and the seven items filled into the integration room, each with its sources from `~/Desktop/16Oct26-the-day-in-full/research-notes/`. Keep every rule in the spec: facts with sources, "our reading" where it is inference, the allegations off the page, no author notes, no sign-off. Add it to the site's crawl and e2e checks (room loads signed in, redirects signed out, the map's script runs, every card opens). Release it with part 2's release-blue, or on its own if part 2 is not ready.
+
 ## 3. Small fixes from the to-do (do all, in this order)
 
 1. `publish/giving/static/appshell.css` line 59: remove the comment "owner's reference, 14 Oct 2026". Rebuild, release with the next release-blue (fold it into part 2's release if that is still ahead).
